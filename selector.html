@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            background-color: rgba(0, 0, 0, 0.4);
+            cursor: crosshair;
+            user-select: none;
+        }
+        #selection {
+            position: absolute;
+            border: 2px solid #00d2ff;
+            background-color: rgba(0, 210, 255, 0.1);
+            display: none;
+            box-shadow: 0 0 15px rgba(0, 210, 255, 0.5);
+        }
+        .guide-text {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: white;
+            font-family: sans-serif;
+            background: rgba(0,0,0,0.6);
+            padding: 10px 20px;
+            border-radius: 20px;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="guide-text" data-i18n="selector_hint">Kayıt alanını seçmek için tıklayıp sürükleyin. Vazgeçmek için ESC'ye basın.</div>
+    <div id="selection"></div>
+
+    <script>
+        const fs = require('fs');
+        const path = require('path');
+        const langPath = fs.existsSync(path.join(process.cwd(), 'lang.json')) 
+            ? path.join(process.cwd(), 'lang.json') 
+            : path.join(__dirname, 'lang.json');
+        try {
+            const lang = JSON.parse(fs.readFileSync(langPath, 'utf8'));
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                if (lang[el.getAttribute('data-i18n')]) el.innerText = lang[el.getAttribute('data-i18n')];
+            });
+        } catch(e) {}
+
+        const { ipcRenderer } = require('electron');
+        
+        let startX, startY, isDragging = false;
+        const selection = document.getElementById('selection');
+
+        window.addEventListener('mousedown', (e) => {
+            isDragging = true;
+            startX = e.clientX;
+            startY = e.clientY;
+            selection.style.left = startX + 'px';
+            selection.style.top = startY + 'px';
+            selection.style.width = '0px';
+            selection.style.height = '0px';
+            selection.style.display = 'block';
+        });
+
+        window.addEventListener('mousemove', (e) => {
+            if (!isDragging) return;
+            
+            const currentX = e.clientX;
+            const currentY = e.clientY;
+            
+            const left = Math.min(startX, currentX);
+            const top = Math.min(startY, currentY);
+            const width = Math.abs(currentX - startX);
+            const height = Math.abs(currentY - startY);
+            
+            selection.style.left = left + 'px';
+            selection.style.top = top + 'px';
+            selection.style.width = width + 'px';
+            selection.style.height = height + 'px';
+        });
+
+        window.addEventListener('mouseup', (e) => {
+            if (!isDragging) return;
+            isDragging = false;
+            
+            const rect = selection.getBoundingClientRect();
+            if (rect.width > 10 && rect.height > 10) {
+                // Minimum size check
+                ipcRenderer.send('region-selected', {
+                    x: Math.floor(rect.left),
+                    y: Math.floor(rect.top),
+                    width: Math.floor(rect.width),
+                    height: Math.floor(rect.height)
+                });
+            } else {
+                selection.style.display = 'none';
+            }
+        });
+
+        window.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                ipcRenderer.send('region-canceled');
+            }
+        });
+    </script>
+</body>
+</html>

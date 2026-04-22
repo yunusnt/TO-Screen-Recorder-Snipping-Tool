@@ -1,0 +1,49 @@
+{
+  "name": "to-screen-recorder",
+  "version": "1.0.0",
+  "description": "Free screen recorder for Windows",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "dist": "electron-builder --win"
+  },
+  "build": {
+    "appId": "com.toscreenrecorder",
+    "productName": "TO_Screen_Recorder",
+    "win": {
+      "target": [
+        "portable",
+        "nsis"
+      ],
+      "icon": "icon.png"
+    },
+    "files": [
+      "main.js",
+      "renderer.js",
+      "index.html",
+      "editor.html",
+      "selector.html",
+      "style.css",
+      "editor.js",
+      "lang.json",
+      "icon.png",
+      "package.json"
+    ],
+    "extraFiles": [
+      {
+        "from": "bin/ffmpeg.exe",
+        "to": "FFMPEG/ffmpeg.exe"
+      }
+    ],
+    "directories": {
+      "output": "Executable"
+    }
+  },
+  "dependencies": {
+    "fluent-ffmpeg": "^2.1.3"
+  },
+  "devDependencies": {
+    "electron": "^41.1.1",
+    "electron-builder": "^24.13.3"
+  }
+}

@@ -1,0 +1,19 @@
+# Build outputs
+node_modules/
+SonKullanici/
+Executable/
+dist/
+
+# Binaries (FFmpeg is too large for Git)
+bin/
+FFMPEG/
+*.exe
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
